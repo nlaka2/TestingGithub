@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define true 1         // Make true a synonym for 1
+// #define true 1         // Make true a synonym for 1
 const int Delta = 3;   // Array growth increment
 
 typedef struct Node *NodePtr;  // NodePtr is a synonym for: struct Node *
@@ -201,7 +201,7 @@ int main()
         
         // Increment the moveNumber
         moveNumber++;
-     } while( true);
+     } while( 1);
 
     printf("Done.\n");
     return 0;
