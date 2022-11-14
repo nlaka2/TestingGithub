@@ -1,3 +1,5 @@
+//git and github is hard to use
+
 // Lab 8: Dynamic array implemented using a linked list.
 // UIC CS 211, Fall 2022, Kidane and Reed
 //Nilufar Lakada and Filip Toloczko
