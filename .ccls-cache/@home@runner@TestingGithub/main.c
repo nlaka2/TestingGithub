@@ -1,218 +1,206 @@
-// linkedListCommandLineArgs.c - Demo program to illustrate how to use
-// command line args with linked lists, so a command line argument
-// will determine whether to prepend or append, and whether to
-// display the list after each new addition.
+// Lab 8: Dynamic array implemented using a linked list.
+// UIC CS 211, Fall 2022, Kidane and Reed
+//Nilufar Lakada and Filip Toloczko
 
-/* Nilufar Lakada and John Ho
-The Class notes from 10/14 were a HUGE help in understanding the arguments
-    let alone being able to "get" them and use them. Thank you Professor Reed.*/
+#include <stdio.h>
+#include <stdlib.h>
 
-#include <stdio.h>   // For printf and scanf
-#include <stdlib.h>  // For malloc
+#define true 1         // Make true a synonym for 1
+const int Delta = 3;   // Array growth increment
 
-typedef struct Node *NodePtr;  // Make:  NodePtr to be a synonym for: struct Node *
+typedef struct Node *NodePtr;  // NodePtr is a synonym for: struct Node *
 struct Node {
-    int data;         // The data stored at the node
-    NodePtr pNext;    // Pointer to the next node
+    int data;        // The data stored at the node
+    int index;       // Index position of this node, when viewed as array
+    NodePtr pNext;   // Pointer to the next node
 };
 
-// Define global constants
-const int PREPEND = 0;  // PREPEND is 0
-const int APPEND = 1;   // APPEND is 1
-const int TRUE = 1;     // TRUE is 1, FALSE is 0
-const int FALSE = 0;
 
-
-//---------------------------------------------------------------------
-// display_usage() - Display program usage message
-void display_usage() {
-    printf("USAGE:");
-    printf("\n  ./main [-p a] [-i 0]");
-    printf("\n");
-    printf("\n  where the parameters are:");
-    printf("\n     [-p c] = Append when c is a, Prepend when it is p");
-    printf("\n     [-i n] = When n is 0 don't display list, when n is 1 display list\n");
-}
-
-// //---------------------------------------------------------------------
-// // error() - Display program error message and exit program
-void error(char *error_name,    // String describing type of error
-           char *error_operand, // String describing specific data structure used
-           int  error_number)   // Error number, also used to display subscripts
+//-------------------------------------------------
+void displayArray(  NodePtr pCurrent)  // Pointer to the first list Node
 {
-    printf("argcArgv program error: \n");
-    printf("*** %s WHEN OPERATING ON: %s ", error_name, error_operand);
-    if(error_number != 0)
-    {
-      printf("at %d\n", error_number);
-    } else {
-        printf("\n");
-    }
-    exit(-1);
-}
-
-
-//---------------------------------------------------------------------
-// get_arguments() - Retrieve & store command line arguments
-// based on the example from Lecture 10/14
-void get_arguments(
-                  int argc, //number of args
-                  char *argv[], //array of strings
-                  char *charValue, //character value command line
-                  int *intValue //character value command line
-                )
-{
-      if(argc == 1) //No arguments
-      {
-        display_usage();
+    // Display the index values stored on the array nodes.
+    printf("Array indices: ");
+    NodePtr pTemp = pCurrent;    // make a copy, so original can still be used below.
+    while( pTemp != NULL) {
+      // Don't print the sentinel Node value
+      if( pTemp->data != -1) {
+        printf("%3d", pTemp->index);
       }
-      else
-      {
-        while( (argc -= 2) > 0 ) // while there is another pair of strings
-        {
-            if( argv[1][0] != '-')// Invalid syntax, no "-" before option
-            {
-              display_usage();
-            }
-            switch(argv[1][1]) { // handle options
-              case 'p': 
-                        *charValue = argv[2][0];
-                        break;
-              case 'i':
-                        *intValue = atoi(argv[2]);
-                        break;
-              default:
-                error("Incorrect parameter", &argv[ 1][ 1], 0);
-            } //end switch
-            argv += 2; // advance to next pair of command line options
-        }// end while
-      } //end else
-}//end get_arguments()
-
-//---------------------------------------------------------------------
-// change_mode() - change mode to prepend or append
-void change_mode(
-                char charValue,
-                int *mode //will be changed to append or prepend
-                )
-{
-  if(charValue == 'a') {
-    *mode= APPEND; //if charValue is 'a', then change mode to append (1)
-  } else if (charValue=='p') {
-    *mode=PREPEND; //if charValue is 'p', then change mode to prepend (0)
-  }
-}
-
-
-  
-// change_display() - change display list to on or off
-void change_display(
-                int intValue,
-                int *displayListOn //will be changed to on or off
-                )
-{
-  if(intValue == 0){
-    *displayListOn = FALSE; //if intValue is 0, then change displayListOn to off (0)
-  } else if(intValue == 1) {
-    *displayListOn = TRUE; //if intValue is 1, then change displayListOn to on (1)
-  }
-}
-
-
-//------------------------------------------------------------
-// Consider: Does this function destroy the head node pointer?
-void displayList( NodePtr pHead)
-{
-   printf("List is: ");
-   while( pHead != NULL) {
-      printf("%d ", pHead->data);
-      pHead = pHead->pNext;
-   }
-   printf("\n");
-} // end displayList()
-
-
-//--------------------------------------------------------------
-// Prepend number at the beginning of the list
-void prependNumber( NodePtr *pHead, int number)
-{
-    // Allocate space for new node and initialize it
-    NodePtr pTemp;     // pointer to new Node
-    pTemp = malloc( sizeof( struct Node));
-    pTemp->data = number;
-    pTemp->pNext = *pHead;
+      pTemp = pTemp->pNext;
+    }
+    printf("\n");
     
-    // Prepend at head of list
-    *pHead = pTemp;
-} // end prependNumber()
+    // Display the numbers stored on the array nodes.
+    printf("       values: ");
+    while( pCurrent != NULL) {
+      // Don't print the sentinel Node value
+      if( pCurrent->data != -1) {
+        printf("%3d", pCurrent->data);
+      }
+      pCurrent = pCurrent->pNext;
+    }
+    printf("\n");
+} //end displayArray(..)
 
 
-//--------------------------------------------------------------
-// Append number at the end of the list
-void appendNumber( NodePtr *pHead, NodePtr *pTail, int number)
+//----------------------------------------------------
+// Find and return the pointer to the nth Node on the list.
+// Return NULL if the index value we are searching for is
+// not found.
+NodePtr findNthNode(
+            NodePtr pCurrent,   // Starts at head of list
+            int indexToFind)    // Index value we are looking for
 {
-    // Allocate space for new node and initialize it
-    NodePtr pTemp = malloc( sizeof( struct Node));
-    pTemp->data = number;
-    pTemp->pNext = NULL;
-
-    // Special case if list is empty
-    if( *pHead == NULL) {
-        // List is empty, so set head to point to first node
-        *pHead = pTemp;
+    // Advance past the sentinel Node to the first Node, if there is one.
+    if( pCurrent != NULL && pCurrent->index == -1) {
+        pCurrent = pCurrent->pNext;
+    }
+    
+    // Iterate down the list looking for the indexToFind.
+    // Make sure we stop at the end of the list, in case indexToFind
+    // is larger than the index at the end of the list.
+    while( pCurrent != NULL && pCurrent->index < indexToFind) {
+        // Advance pCurrent to point to next node
+        pCurrent = pCurrent->pNext;
+    }
+    
+    // Return pointer to the Node where index was found, or NULL if not found.
+    if( pCurrent != NULL && indexToFind == pCurrent->index) {
+        return pCurrent;
     }
     else {
-        // List is not empty, so connect last node to new node
-        (*pTail)->pNext = pTemp;
+        return NULL;
     }
+} //end findNthNode(..)
+
+
+//----------------------------------------------------
+// Add newNumber into array. If index is larger than
+// the current array size, then grow the array in groups
+// of 3 nodes at a time until index is now in range.
+
+// Once this is done, add the new element and update
+// the new current size.
+
+void addValueAt(
+                  NodePtr pCurrent, //start at the head
+                  NodePtr pTail,
+                  int newNumberIndex,
+                  int* maxSize,
+                  int newNumber)    
+{
+    NodePtr pTemp = pCurrent;
+    if(newNumberIndex < *maxSize)
+    {
+      while(pTemp->index != newNumberIndex)
+      {
+        pTemp = pTemp->pNext;
+      }
+      pTemp->data = newNumber;
+    }
+    // NodePtr pHeadTemp = (NodePtr) malloc( sizeof( struct Node));
+    // pHeadTemp->index = -1;
+    // pHeadTemp->data = -1;
+    // pHeadTemp->pNext = NULL;
+    // NodePtr pTailTemp = pHeadTemp;
+  
+    // while( newNumberIndex > *maxSize)
+    // {
+    //   *maxSize += Delta;
+    // }
+
+    // for(int i = 0; i < *maxSize; i++)
+    // {
+    //   appendNumber(pHeadTemp, &pTailTemp, index);
+    // }
+    // If newNumberIndex is larger than the current number of Nodes on the list,
+    // then keep growing the list three nodes at a time until it is in range.
+    // ...
+
+    // List is now large enough to accomodate the newNumberIndex.
+    // Find the node where it should go using findNthNode(..);
+    // ...
     
-    // Set new tail pointer
-    *pTail = pTemp;
+    // Add the new element
+    // ...
+} //end addValueAt(...)
+
+
+//-----------------------------------------------
+void appendNumber(NodePtr pHead, NodePtr *pTail, int index)
+{
+  // Allocate space for new node and initialize it
+  NodePtr pTemp;  // pointer to new Node
+  pTemp = malloc(sizeof(struct Node));  
+
+  *pTail = pHead;
+  pTemp->data  = 0;
+  pTemp->index = index;
+  pTemp->pNext = NULL;
+  
+  if (pHead == NULL) {
+     pHead = pTemp;
+     return;
+  } 
+  while ((*pTail)->pNext != NULL) {
+      (*pTail) = (*pTail)->pNext;
+  }
+  // Append at tail of list
+  (*pTail)->pNext = pTemp;
+  
 } // end appendNumber()
 
 
-//--------------------------------------------------------------
-int main( int argc, char *argv[])
+//-----------------------------------------------
+int main()
 {
-    NodePtr pHead = NULL;      // head of linked list
-    NodePtr pTail = NULL;      // tail of linked list
-    int number = 0;            // Used to store numbers read in
+    int moveNumber = 1;     // Numbers user inputs.
+    int maxSize = 0;        // Number of Nodes in storage, not counting the sentinel Node.
+    int newNumber = 0;      // User input of new number to be added.
+    int newNumberIndex = 0; // User input of index position where new number should go.
+    int index = 0;
     
-    int mode = PREPEND;        // Default mode
-    int displayListOn = TRUE;  // Determine whether list should display each time
-    // Use command line args to optionally reset the following two variables,
-    // where command line args -p a switches mode to APPEND, and
-    // commmand line arg -i 0 switches display mode to FALSE.
-    // ...
-    int intValue = 0;
-    char charValue = 'a';
+    // Allocate space for the initial sentinel Node and initialize its values.
+    NodePtr pHead = (NodePtr) malloc( sizeof( struct Node));
+    pHead->index = -1;
+    pHead->data = -1;
+    pHead->pNext = NULL;
+    NodePtr pTail = pHead;  // Tail initially points to sentinel node
+    
+    // Allocate the first set of 3 nodes
+    //...
+    appendNumber(pHead, &pTail, index);
+    index++;
+    appendNumber(pHead, &pTail, index);
+    index++;
+    appendNumber(pHead, &pTail, index);
+    index++;
+    maxSize = 3;
+  
+    // Prompt for, get and store new number
+	printf("Give input of -1 to exit the program.\n");
+    do {
+        printf("%2d. Enter value and index: ", moveNumber);
+        scanf("%d", &newNumber);
+        if( newNumber == -1) {
+            break;   // Exit when -1 is entered
+        }
+        else {
+            // Also scan the index
+            scanf("%d", &newNumberIndex);
+        }
 
-    get_arguments(argc, argv, &charValue, &intValue);
-    change_mode(charValue, &mode);
-    change_display(intValue, &displayListOn);
-//    printf("%d",displayListOn);
+        // Add the new value, growing storage if needed.
+        addValueAt(pHead, pTail, newNumberIndex, &maxSize, newNumber);
 
-    printf("Enter positive integers followed by -1: ");
-    // Loop to allow adding values to the list.
-    while( number != -1) {
-        scanf("%d", &number);
-        if( number == -1) {
-            break;  // Exit loop, done with program.
-        }
-        else if( mode == PREPEND) {
-            prependNumber( &pHead, number); // Prepend to front of list
-        }
-        else if( mode == APPEND) {
-            appendNumber( &pHead, &pTail, number); // Append to end of list
-        }
+        // Display the array with this new element
+        displayArray( pHead);
         
-        if( displayListOn == TRUE) {
-            displayList( pHead);
-        }
-    } //end while( number...
+        // Increment the moveNumber
+        moveNumber++;
+     } while( true);
 
-    // Always display the list at the end
-    printf("Final Result: ");
-    displayList(pHead);
-    return 0;         // return value to keep C++ happy
-} // end main()
+    printf("Done.\n");
+    return 0;
+}
